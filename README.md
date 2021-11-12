@@ -1,2 +1,2 @@
 # nyaacli
-unofficall cli client for nyaa
+unofficial cli client for nyaa
