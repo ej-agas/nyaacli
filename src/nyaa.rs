@@ -1,6 +1,7 @@
-use std::collections::BTreeMap;
+use crate::input::InputBag;
 use select::document::Document;
-use select::predicate::{Attr, Class, Predicate};
+use select::predicate::{Attr, Class, Name, Predicate};
+use std::collections::BTreeMap;
 
 #[derive(Debug)]
 pub struct Anime {
@@ -9,62 +10,55 @@ pub struct Anime {
     pub seeds: String,
     pub leechers: String,
     pub downloads: String,
-    pub date_uploaded: String
+    pub date_uploaded: String,
 }
 
-pub async fn fetch_animes(query: &String, sort: String, order: String) -> BTreeMap<usize, Anime> {
-    let client = reqwest::Client::new();
-    let response = client.get("https://nyaa.si/?f=0&c=1_2")
-        .query(&[("q", query.as_str()), ("s", sort.as_str()), ("o", order.as_str())])
-        .send()
-        .await
+pub fn fetch_animes(input: InputBag) -> BTreeMap<usize, Anime> {
+    let response = ureq::get("https://nyaa.si")
+        .query("f", input.filter().as_str())
+        .query("c", input.category().as_str())
+        .query("q", input.query().as_str())
+        .query("s", input.sort_by().as_str())
+        .query("o", input.order_by().as_str())
+        .call()
         .unwrap()
-        ;
+        .into_string()
+        .unwrap();
 
-    assert!(response.status().is_success());
-
-    return response_into_hash(&response.text().await.unwrap()).await;
+    return response_into_hash(&response);
 }
 
-async fn response_into_hash(res: &str) -> BTreeMap<usize, Anime> {
+fn response_into_hash(res: &str) -> BTreeMap<usize, Anime> {
     let document = Document::from_read(res.as_bytes()).unwrap();
 
-    let table = document.find(Class("torrent-list")).next().unwrap();
+    let table = document
+        .find(Class("torrent-list"))
+        .next()
+        .expect("Nyaa returned 0 results.");
+
+    let table = table.find(Name("tbody")).next().unwrap();
 
     let mut map = BTreeMap::new();
 
-    for (count, row) in table.find(Class("danger")).enumerate() {
-        let name = row.find(Attr("colspan", "2").descendant(Attr("title", ())))
+    for (count, row) in table.find(Name("tr")).enumerate() {
+        let name = row
+            .find(Attr("colspan", "2").descendant(Attr("title", ())))
             .last()
             .unwrap()
             .text();
 
-        let size = row.find(Class("text-center"))
-            .nth(1)
-            .unwrap()
-            .text();
+        let size = row.find(Class("text-center")).nth(1).unwrap().text();
 
-        let date = row.find(Class("text-center"))
-            .nth(2)
-            .unwrap()
-            .text();
+        let date = row.find(Class("text-center")).nth(2).unwrap().text();
 
-        let seeds = row.find(Class("text-center"))
-            .nth(3)
-            .unwrap()
-            .text();
+        let seeds = row.find(Class("text-center")).nth(3).unwrap().text();
 
-        let leechers = row.find(Class("text-center"))
-            .nth(4)
-            .unwrap()
-            .text();
+        let leechers = row.find(Class("text-center")).nth(4).unwrap().text();
 
-        let downloads = row.find(Class("text-center"))
-            .nth(5)
-            .unwrap()
-            .text();
+        let downloads = row.find(Class("text-center")).nth(5).unwrap().text();
 
-        let _magnet_link = row.find(Class("text-center"))
+        let _magnet_link = row
+            .find(Class("text-center"))
             .nth(0)
             .unwrap()
             .children()
@@ -73,14 +67,17 @@ async fn response_into_hash(res: &str) -> BTreeMap<usize, Anime> {
             .attr("href")
             .unwrap();
 
-        map.insert(count, Anime {
-            name,
-            size,
-            seeds,
-            leechers,
-            downloads,
-            date_uploaded: date
-        });
+        map.insert(
+            count,
+            Anime {
+                name,
+                size,
+                seeds,
+                leechers,
+                downloads,
+                date_uploaded: date,
+            },
+        );
     }
 
     return map;

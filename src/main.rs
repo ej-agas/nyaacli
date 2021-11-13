@@ -1,27 +1,20 @@
+mod input;
 mod nyaa;
 mod table;
-mod input;
 
+use crate::input::InputBag;
 use std::io::Write;
 use structopt::StructOpt;
-use crate::input::InputBag;
 
-#[macro_use] extern crate prettytable;
+#[macro_use]
+extern crate prettytable;
 
-#[tokio::main]
-async fn main() {
-
+fn main() {
     let input = InputBag::from_args();
 
-    println!("{:#?}", input);
+    let animes = &nyaa::fetch_animes(input);
 
-    let animes = &nyaa::fetch_animes(
-        &input.query(),
-        input.sort_by(),
-        input.order_by()
-    ).await;
-
-    let table = table::create_table(&animes).await;
+    let table = table::create_table(&animes);
     table.printstd();
 
     print!("Enter row count to download: ");
@@ -35,4 +28,3 @@ async fn main() {
 
     println!("{:?}", input_ids);
 }
-
