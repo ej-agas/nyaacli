@@ -8,23 +8,23 @@ pub fn create_table(animes: &BTreeMap<usize, Anime>) -> Table {
     table.set_format(*FORMAT_BOX_CHARS);
     table.set_titles(row![
         "",
-        "Name",
-        "Size",
-        "Seeds",
-        "Leechers",
-        "Downloads",
-        "Date Uploaded"
+        bFG->"Name",
+        bFG->"Size",
+        bFG->"Seeds",
+        bFG->"Leechers",
+        bFG->"Downloads",
+        bFG->"Date Uploaded"
     ]);
 
     for (key, val) in animes {
         table.add_row(row![
             key,
-            truncate(&val.name, 100),
+            Fg->truncate(&val.name, 100),
             val.size,
             Fg->val.seeds,
             Fr->val.leechers,
             val.downloads,
-            val.date_uploaded
+            Fb->val.date_uploaded
         ]);
     }
 

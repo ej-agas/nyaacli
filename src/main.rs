@@ -1,6 +1,7 @@
 mod input;
 mod nyaa;
 mod table;
+mod torrent;
 
 use crate::input::InputBag;
 use std::io::Write;
@@ -14,17 +15,15 @@ fn main() {
 
     let animes = &nyaa::fetch_animes(input);
 
-    let table = table::create_table(&animes);
+    let table = table::create_table(animes);
     table.printstd();
 
-    print!("Enter row count to download: ");
+    println!("Ex. 0,1,2");
+    print!("Enter row count(s) to download: ");
     std::io::stdout().flush().unwrap();
 
-    let mut input_ids = String::new();
-    std::io::stdin().read_line(&mut input_ids).unwrap();
+    let mut rows_as_str = String::new();
+    std::io::stdin().read_line(&mut rows_as_str).unwrap();
 
-    let input_ids = input_ids.trim();
-    let input_ids = input_ids.split(",").collect::<Vec<_>>();
-
-    println!("{:?}", input_ids);
+    torrent::download(rows_as_str, animes)
 }

@@ -3,8 +3,8 @@ use structopt::StructOpt;
 #[derive(Debug, StructOpt)]
 #[structopt(
     name = "nyaacli",
-    about = "CLI Bittorrent software for cats (UNOFFICIAL)",
-    author = "ej agas (agas.ej09@gmail.com)"
+    about = "CLI bittorrent software for nerd cats.",
+    author = "ej-agas (agas.ej09@gmail.com)"
 )]
 pub struct InputBag {
     /// Your query.

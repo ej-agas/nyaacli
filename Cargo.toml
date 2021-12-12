@@ -3,8 +3,6 @@ name = "nyaacli"
 version = "0.1.0"
 edition = "2021"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
 [dependencies]
 ureq = "^2.3"
 select = "^0.5"
@@ -12,6 +10,8 @@ prettytable-rs = "^0.8"
 structopt = "^0.3"
 
 [profile.release]
-opt-level = "s"
+opt-level = "z"
 lto = true
 codegen-units = 1
+debug = false
+panic = "abort"

@@ -11,6 +11,7 @@ pub struct Anime {
     pub leechers: String,
     pub downloads: String,
     pub date_uploaded: String,
+    pub magnet_link: String,
 }
 
 pub fn fetch_animes(input: InputBag) -> BTreeMap<usize, Anime> {
@@ -21,7 +22,7 @@ pub fn fetch_animes(input: InputBag) -> BTreeMap<usize, Anime> {
         .query("s", input.sort_by().as_str())
         .query("o", input.order_by().as_str())
         .call()
-        .unwrap()
+        .expect("Failed to connect to nyaa, are you connected to the internet?")
         .into_string()
         .unwrap();
 
@@ -57,15 +58,16 @@ fn response_into_hash(res: &str) -> BTreeMap<usize, Anime> {
 
         let downloads = row.find(Class("text-center")).nth(5).unwrap().text();
 
-        let _magnet_link = row
-            .find(Class("text-center"))
-            .nth(0)
-            .unwrap()
-            .children()
-            .nth(3)
-            .unwrap()
-            .attr("href")
-            .unwrap();
+        let magnet_link = String::from(
+            row.find(Class("text-center"))
+                .next()
+                .unwrap()
+                .children()
+                .nth(3)
+                .unwrap()
+                .attr("href")
+                .unwrap(),
+        );
 
         map.insert(
             count,
@@ -76,6 +78,7 @@ fn response_into_hash(res: &str) -> BTreeMap<usize, Anime> {
                 leechers,
                 downloads,
                 date_uploaded: date,
+                magnet_link,
             },
         );
     }
